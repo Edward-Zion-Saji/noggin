@@ -11,6 +11,7 @@ from .models import SourceEvent, content_hash
 from .observability import log_event
 from .paths import default_db_path
 from .redaction import redact_secrets
+from .skills import apply_skill_proposal, propose_skill, reject_skill_proposal
 from .store import BrainStore
 
 
@@ -116,3 +117,48 @@ class BrainService:
 
         return self.store.stats()
 
+    def propose_skill(
+        self,
+        content: str,
+        *,
+        title: str | None = None,
+        target_path: str | None = None,
+        reason: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a guarded skill proposal."""
+
+        return propose_skill(
+            self.store,
+            content=content,
+            title=title,
+            target_path=target_path,
+            reason=reason,
+        )
+
+    def apply_skill(
+        self,
+        proposal_id: str,
+        *,
+        allow_root: str | Path,
+        run_tests: str | None = None,
+    ) -> dict[str, Any]:
+        """Apply a skill proposal through the safety gate."""
+
+        return apply_skill_proposal(
+            self.store,
+            proposal_id,
+            allow_root=allow_root,
+            run_tests=run_tests,
+        )
+
+    def reject_skill(self, proposal_id: str, *, reason: str = "") -> dict[str, Any]:
+        """Reject a skill proposal."""
+
+        return reject_skill_proposal(self.store, proposal_id, reason=reason)
+
+    def list_skill_proposals(
+        self, *, status: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """List skill proposals."""
+
+        return self.store.list_skill_proposals(status=status, limit=limit)

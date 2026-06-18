@@ -55,6 +55,35 @@ def build_parser() -> argparse.ArgumentParser:
 
     stats = sub.add_parser("stats", help="Show brain stats.")
     stats.set_defaults(func=cmd_stats)
+
+    skills = sub.add_parser("skills", help="Skill proposal workflow.")
+    skills_sub = skills.add_subparsers(dest="skills_command", required=True)
+    skills_propose = skills_sub.add_parser("propose", help="Create a skill proposal.")
+    skills_propose.add_argument("--content", help="Lesson content. Reads stdin when omitted.")
+    skills_propose.add_argument("--title")
+    skills_propose.add_argument("--target-path")
+    skills_propose.add_argument("--reason")
+    skills_propose.set_defaults(func=cmd_skills_propose)
+
+    skills_list = skills_sub.add_parser("list", help="List skill proposals.")
+    skills_list.add_argument("--status")
+    skills_list.add_argument("--limit", type=int, default=50)
+    skills_list.set_defaults(func=cmd_skills_list)
+
+    skills_show = skills_sub.add_parser("show", help="Show one skill proposal.")
+    skills_show.add_argument("proposal_id")
+    skills_show.set_defaults(func=cmd_skills_show)
+
+    skills_apply = skills_sub.add_parser("apply", help="Apply one skill proposal.")
+    skills_apply.add_argument("proposal_id")
+    skills_apply.add_argument("--allow-root", required=True)
+    skills_apply.add_argument("--run-tests")
+    skills_apply.set_defaults(func=cmd_skills_apply)
+
+    skills_reject = skills_sub.add_parser("reject", help="Reject one skill proposal.")
+    skills_reject.add_argument("proposal_id")
+    skills_reject.add_argument("--reason", default="")
+    skills_reject.set_defaults(func=cmd_skills_reject)
     return parser
 
 
@@ -112,6 +141,46 @@ def cmd_stats(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_skills_propose(args: argparse.Namespace) -> int:
+    content = args.content or sys.stdin.read()
+    proposal = service(args).propose_skill(
+        content,
+        title=args.title,
+        target_path=args.target_path,
+        reason=args.reason,
+    )
+    print_json({"ok": True, "proposal": proposal})
+    return 0
+
+
+def cmd_skills_list(args: argparse.Namespace) -> int:
+    proposals = service(args).list_skill_proposals(status=args.status, limit=args.limit)
+    print_json({"ok": True, "proposals": proposals})
+    return 0
+
+
+def cmd_skills_show(args: argparse.Namespace) -> int:
+    proposal = service(args).store.get_skill_proposal(args.proposal_id)
+    print_json({"ok": bool(proposal), "proposal": proposal})
+    return 0 if proposal else 1
+
+
+def cmd_skills_apply(args: argparse.Namespace) -> int:
+    proposal = service(args).apply_skill(
+        args.proposal_id,
+        allow_root=args.allow_root,
+        run_tests=args.run_tests,
+    )
+    print_json({"ok": True, "proposal": proposal})
+    return 0
+
+
+def cmd_skills_reject(args: argparse.Namespace) -> int:
+    proposal = service(args).reject_skill(args.proposal_id, reason=args.reason)
+    print_json({"ok": True, "proposal": proposal})
+    return 0
+
+
 def print_json(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, indent=2, sort_keys=True))
 
@@ -125,4 +194,3 @@ def _json_arg(raw: str) -> dict[str, Any]:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
