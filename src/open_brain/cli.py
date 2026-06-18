@@ -82,6 +82,28 @@ def build_parser() -> argparse.ArgumentParser:
     github_pr.add_argument("--include-diff", action="store_true")
     github_pr.set_defaults(func=cmd_github_pr)
 
+    sync = sub.add_parser("sync", help="Snapshot and peer sync commands.")
+    sync_sub = sync.add_subparsers(dest="sync_command", required=True)
+    sync_export = sync_sub.add_parser("export", help="Export local brain snapshot.")
+    sync_export.add_argument("output")
+    sync_export.set_defaults(func=cmd_sync_export)
+    sync_import = sync_sub.add_parser("import", help="Import a brain snapshot.")
+    sync_import.add_argument("input")
+    sync_import.set_defaults(func=cmd_sync_import)
+    sync_serve = sync_sub.add_parser("serve", help="Serve token-protected sync endpoint.")
+    sync_serve.add_argument("--host", default="127.0.0.1")
+    sync_serve.add_argument("--port", type=int, default=8797)
+    sync_serve.add_argument("--token")
+    sync_serve.set_defaults(func=cmd_sync_serve)
+    sync_push = sync_sub.add_parser("push", help="Push local snapshot to peer URL.")
+    sync_push.add_argument("url")
+    sync_push.add_argument("--token")
+    sync_push.set_defaults(func=cmd_sync_push)
+    sync_pull = sync_sub.add_parser("pull", help="Pull peer snapshot into local brain.")
+    sync_pull.add_argument("url")
+    sync_pull.add_argument("--token")
+    sync_pull.set_defaults(func=cmd_sync_pull)
+
     skills = sub.add_parser("skills", help="Skill proposal workflow.")
     skills_sub = skills.add_subparsers(dest="skills_command", required=True)
     skills_propose = skills_sub.add_parser("propose", help="Create a skill proposal.")
@@ -190,6 +212,36 @@ def cmd_github_pr(args: argparse.Namespace) -> int:
     from .github import ingest_pr
 
     return ingest_pr(args)
+
+
+def cmd_sync_export(args: argparse.Namespace) -> int:
+    from .sync import cmd_sync_export as run
+
+    return run(args)
+
+
+def cmd_sync_import(args: argparse.Namespace) -> int:
+    from .sync import cmd_sync_import as run
+
+    return run(args)
+
+
+def cmd_sync_serve(args: argparse.Namespace) -> int:
+    from .sync import cmd_sync_serve as run
+
+    return run(args)
+
+
+def cmd_sync_push(args: argparse.Namespace) -> int:
+    from .sync import cmd_sync_push as run
+
+    return run(args)
+
+
+def cmd_sync_pull(args: argparse.Namespace) -> int:
+    from .sync import cmd_sync_pull as run
+
+    return run(args)
 
 
 def cmd_skills_propose(args: argparse.Namespace) -> int:
