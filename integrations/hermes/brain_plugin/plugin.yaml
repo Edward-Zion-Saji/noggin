@@ -1,0 +1,15 @@
+name: open_brain
+version: 0.1.0
+description: "Local-first brain tools for Hermes: ingest activity, recall context, reflect over evidence, and create guarded skill proposals."
+author: Open Brain Plugin
+kind: standalone
+platforms:
+  - linux
+  - macos
+  - windows
+provides_tools:
+  - brain_ingest
+  - brain_recall
+  - brain_reflect
+  - brain_skill_propose
+

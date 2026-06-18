@@ -1,0 +1,22 @@
+display_information:
+  name: Open Brain
+features:
+  bot_user:
+    display_name: Open Brain
+    always_online: false
+  slash_commands:
+    - command: /brain
+      description: Remember or recall local brain context
+      usage_hint: remember <text> | recall <query> | propose-skill <lesson> | status
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - commands
+settings:
+  interactivity:
+    is_enabled: false
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
+
