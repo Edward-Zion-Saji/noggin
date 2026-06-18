@@ -59,6 +59,14 @@ def build_parser() -> argparse.ArgumentParser:
     mcp = sub.add_parser("mcp", help="Run the stdio MCP server.")
     mcp.set_defaults(func=cmd_mcp)
 
+    slack = sub.add_parser("slack", help="Slack adapter commands.")
+    slack_sub = slack.add_subparsers(dest="slack_command", required=True)
+    slack_serve = slack_sub.add_parser("serve", help="Serve Slack slash-command endpoint.")
+    slack_serve.add_argument("--host", default="127.0.0.1")
+    slack_serve.add_argument("--port", type=int, default=8787)
+    slack_serve.add_argument("--signing-secret")
+    slack_serve.set_defaults(func=cmd_slack_serve)
+
     skills = sub.add_parser("skills", help="Skill proposal workflow.")
     skills_sub = skills.add_subparsers(dest="skills_command", required=True)
     skills_propose = skills_sub.add_parser("propose", help="Create a skill proposal.")
@@ -149,6 +157,12 @@ def cmd_mcp(args: argparse.Namespace) -> int:
 
     run_mcp(db_path=args.db)
     return 0
+
+
+def cmd_slack_serve(args: argparse.Namespace) -> int:
+    from .slack import serve_slack
+
+    return serve_slack(args)
 
 
 def cmd_skills_propose(args: argparse.Namespace) -> int:
