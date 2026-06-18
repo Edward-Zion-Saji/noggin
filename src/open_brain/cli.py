@@ -56,6 +56,9 @@ def build_parser() -> argparse.ArgumentParser:
     stats = sub.add_parser("stats", help="Show brain stats.")
     stats.set_defaults(func=cmd_stats)
 
+    mcp = sub.add_parser("mcp", help="Run the stdio MCP server.")
+    mcp.set_defaults(func=cmd_mcp)
+
     skills = sub.add_parser("skills", help="Skill proposal workflow.")
     skills_sub = skills.add_subparsers(dest="skills_command", required=True)
     skills_propose = skills_sub.add_parser("propose", help="Create a skill proposal.")
@@ -138,6 +141,13 @@ def cmd_reflect(args: argparse.Namespace) -> int:
 
 def cmd_stats(args: argparse.Namespace) -> int:
     print_json({"ok": True, "stats": service(args).stats()})
+    return 0
+
+
+def cmd_mcp(args: argparse.Namespace) -> int:
+    from .mcp_server import run_mcp
+
+    run_mcp(db_path=args.db)
     return 0
 
 
