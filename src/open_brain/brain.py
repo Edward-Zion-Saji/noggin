@@ -1,0 +1,118 @@
+"""High-level brain service used by CLI and adapters."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from .errors import LlmExtractionError
+from .extractors import Extractor, FallbackExtractor
+from .models import SourceEvent, content_hash
+from .observability import log_event
+from .paths import default_db_path
+from .redaction import redact_secrets
+from .store import BrainStore
+
+
+class BrainService:
+    """Facade around validation, redaction, extraction, recall, and storage."""
+
+    def __init__(self, db_path: str | Path | None = None, extractor: Extractor | None = None):
+        self.store = BrainStore(db_path or default_db_path())
+        self.extractor = extractor or FallbackExtractor()
+
+    def ingest(
+        self,
+        content: str,
+        *,
+        source: str = "cli",
+        kind: str = "note",
+        workspace: str = "default",
+        actor: str = "unknown",
+        source_id: str | None = None,
+        idempotency_key: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        strict_secrets: bool = False,
+    ) -> dict[str, Any]:
+        """Validate and ingest content into the brain."""
+
+        event = SourceEvent(
+            content=content,
+            source=source,
+            kind=kind,
+            workspace=workspace,
+            actor=actor,
+            source_id=source_id,
+            idempotency_key=idempotency_key,
+            metadata=metadata or {},
+        ).validate()
+        redaction = redact_secrets(event.normalized_content(), strict=strict_secrets)
+        event_hash = content_hash(redaction.content)
+        key = event.effective_idempotency_key(redaction.content)
+        event_id, duplicate = self.store.append_event(
+            event,
+            redacted_content=redaction.content,
+            redaction_findings=redaction.findings,
+            content_hash=event_hash,
+            idempotency_key=key,
+        )
+        if duplicate:
+            log_event("brain.event.duplicate", event_id=event_id, source=source)
+            return {
+                "event_id": event_id,
+                "duplicate": True,
+                "observations_added": 0,
+                "extraction_status": "skipped_duplicate",
+                "redactions": redaction.findings,
+            }
+
+        try:
+            observations = self.extractor.extract(event, event_id, redaction.content)
+            self.store.add_observations(observations)
+            self.store.set_event_extraction(event_id, "ok")
+            return {
+                "event_id": event_id,
+                "duplicate": False,
+                "observations_added": len(observations),
+                "extraction_status": "ok",
+                "redactions": redaction.findings,
+            }
+        except LlmExtractionError as exc:
+            self.store.set_event_extraction(event_id, "failed", str(exc))
+            log_event("brain.extraction.failed", event_id=event_id, error=str(exc))
+            return {
+                "event_id": event_id,
+                "duplicate": False,
+                "observations_added": 0,
+                "extraction_status": "failed",
+                "extraction_error": str(exc),
+                "redactions": redaction.findings,
+            }
+
+    def recall(self, query: str, *, limit: int = 10, workspace: str | None = None) -> list[dict[str, Any]]:
+        """Recall relevant observations with provenance."""
+
+        return self.store.recall(query, limit=limit, workspace=workspace)
+
+    def reflect(self, query: str, *, limit: int = 8, workspace: str | None = None) -> dict[str, Any]:
+        """Return a compact synthesis over recall results."""
+
+        results = self.recall(query, limit=limit, workspace=workspace)
+        if not results:
+            return {"query": query, "summary": "No matching brain context found.", "results": []}
+        bullets = []
+        for row in results[:limit]:
+            confidence = row.get("confidence", 0)
+            source = row.get("source", "unknown")
+            bullets.append(f"- ({confidence:.2f}, {source}) {row.get('content', '')}")
+        return {
+            "query": query,
+            "summary": "\n".join(bullets),
+            "results": results,
+        }
+
+    def stats(self) -> dict[str, Any]:
+        """Return store stats."""
+
+        return self.store.stats()
+
