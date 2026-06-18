@@ -62,6 +62,19 @@ brain dashboard --open
 
 ## Adapters
 
+### Local Install For Hermes
+
+```bash
+scripts/install-hermes.sh
+hermes plugins enable open_brain
+```
+
+### Local Install For OpenClaw
+
+```bash
+scripts/install-openclaw.sh
+```
+
 ### MCP
 
 ```bash
@@ -133,4 +146,3 @@ export BRAIN_DB=/path/to/brain.db
 python -m pytest
 ruff check .
 ```
-
