@@ -67,6 +67,21 @@ def build_parser() -> argparse.ArgumentParser:
     slack_serve.add_argument("--signing-secret")
     slack_serve.set_defaults(func=cmd_slack_serve)
 
+    github = sub.add_parser("github", help="GitHub ingestion commands.")
+    github_sub = github.add_subparsers(dest="github_command", required=True)
+    github_issue = github_sub.add_parser("issue", help="Ingest a GitHub issue and comments.")
+    github_issue.add_argument("repo", help="owner/repo")
+    github_issue.add_argument("number", type=int)
+    github_issue.add_argument("--token")
+    github_issue.set_defaults(func=cmd_github_issue)
+
+    github_pr = github_sub.add_parser("pr", help="Ingest a GitHub pull request.")
+    github_pr.add_argument("repo", help="owner/repo")
+    github_pr.add_argument("number", type=int)
+    github_pr.add_argument("--token")
+    github_pr.add_argument("--include-diff", action="store_true")
+    github_pr.set_defaults(func=cmd_github_pr)
+
     skills = sub.add_parser("skills", help="Skill proposal workflow.")
     skills_sub = skills.add_subparsers(dest="skills_command", required=True)
     skills_propose = skills_sub.add_parser("propose", help="Create a skill proposal.")
@@ -163,6 +178,18 @@ def cmd_slack_serve(args: argparse.Namespace) -> int:
     from .slack import serve_slack
 
     return serve_slack(args)
+
+
+def cmd_github_issue(args: argparse.Namespace) -> int:
+    from .github import ingest_issue
+
+    return ingest_issue(args)
+
+
+def cmd_github_pr(args: argparse.Namespace) -> int:
+    from .github import ingest_pr
+
+    return ingest_pr(args)
 
 
 def cmd_skills_propose(args: argparse.Namespace) -> int:
