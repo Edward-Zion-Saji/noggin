@@ -22,9 +22,8 @@ from .observability import log_event
 def serve_slack(args: argparse.Namespace) -> int:
     """Run the Slack adapter HTTP server."""
 
-    brain = BrainService(db_path=args.db)
     signing_secret = args.signing_secret or os.getenv("BRAIN_SLACK_SIGNING_SECRET", "")
-    handler_cls = _handler(brain, signing_secret)
+    handler_cls = _handler(args.db, signing_secret)
     server = ThreadingHTTPServer((args.host, args.port), handler_cls)
     print(f"Slack brain adapter listening on http://{args.host}:{args.port}")
     try:
@@ -134,7 +133,7 @@ def verify_slack_signature(
         raise SlackSignatureError("invalid Slack signature")
 
 
-def _handler(brain: BrainService, signing_secret: str) -> type[BaseHTTPRequestHandler]:
+def _handler(db_path: str, signing_secret: str) -> type[BaseHTTPRequestHandler]:
     class SlackHandler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
             if self.path == "/health":
@@ -156,6 +155,7 @@ def _handler(brain: BrainService, signing_secret: str) -> type[BaseHTTPRequestHa
                 )
                 parsed = parse_qs(body.decode("utf-8"), keep_blank_values=True)
                 form = {key: values[-1] for key, values in parsed.items()}
+                brain = BrainService(db_path=db_path)
                 self._json(handle_slack_command(brain, form))
             except SlackSignatureError as exc:
                 log_event("brain.slack.signature_error", error=str(exc))
@@ -180,4 +180,3 @@ def _handler(brain: BrainService, signing_secret: str) -> type[BaseHTTPRequestHa
 
 def _slack_text(text: str) -> dict[str, Any]:
     return {"response_type": "ephemeral", "text": text}
-

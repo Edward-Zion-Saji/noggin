@@ -104,6 +104,12 @@ def build_parser() -> argparse.ArgumentParser:
     sync_pull.add_argument("--token")
     sync_pull.set_defaults(func=cmd_sync_pull)
 
+    dashboard = sub.add_parser("dashboard", help="Run the local browser dashboard.")
+    dashboard.add_argument("--host", default="127.0.0.1")
+    dashboard.add_argument("--port", type=int, default=8790)
+    dashboard.add_argument("--open", action="store_true")
+    dashboard.set_defaults(func=cmd_dashboard)
+
     skills = sub.add_parser("skills", help="Skill proposal workflow.")
     skills_sub = skills.add_subparsers(dest="skills_command", required=True)
     skills_propose = skills_sub.add_parser("propose", help="Create a skill proposal.")
@@ -242,6 +248,12 @@ def cmd_sync_pull(args: argparse.Namespace) -> int:
     from .sync import cmd_sync_pull as run
 
     return run(args)
+
+
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    from .dashboard import serve_dashboard
+
+    return serve_dashboard(args)
 
 
 def cmd_skills_propose(args: argparse.Namespace) -> int:

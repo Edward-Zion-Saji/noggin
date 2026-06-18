@@ -154,8 +154,7 @@ def cmd_sync_serve(args: argparse.Namespace) -> int:
     token = args.token or os.getenv("BRAIN_SYNC_TOKEN", "")
     if not token:
         raise SyncAuthError("BRAIN_SYNC_TOKEN or --token is required for sync serve")
-    brain = BrainService(db_path=args.db)
-    server = ThreadingHTTPServer((args.host, args.port), _handler(brain, token))
+    server = ThreadingHTTPServer((args.host, args.port), _handler(args.db, token))
     print(f"Brain sync peer listening on http://{args.host}:{args.port}")
     try:
         server.serve_forever()
@@ -189,7 +188,7 @@ def cmd_sync_pull(args: argparse.Namespace) -> int:
     return 0
 
 
-def _handler(brain: BrainService, token: str) -> type[BaseHTTPRequestHandler]:
+def _handler(db_path: str, token: str) -> type[BaseHTTPRequestHandler]:
     class SyncHandler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
             if self.path == "/health":
@@ -198,6 +197,7 @@ def _handler(brain: BrainService, token: str) -> type[BaseHTTPRequestHandler]:
             if self.path == "/sync/export":
                 if not self._authorized():
                     return
+                brain = BrainService(db_path=db_path)
                 self._json(export_snapshot(brain.store))
                 return
             self.send_error(HTTPStatus.NOT_FOUND)
@@ -208,6 +208,7 @@ def _handler(brain: BrainService, token: str) -> type[BaseHTTPRequestHandler]:
                 return
             if not self._authorized():
                 return
+            brain = BrainService(db_path=db_path)
             raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
             snapshot = json.loads(raw.decode("utf-8"))
             counts = import_snapshot(brain.store, snapshot)
@@ -253,4 +254,3 @@ def _request_json(url: str, *, token: str, body: dict[str, Any] | None = None) -
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         raise SyncAuthError(f"sync peer HTTP {exc.code}: {exc.read().decode('utf-8')[:300]}") from exc
-
