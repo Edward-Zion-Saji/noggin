@@ -2,6 +2,14 @@
 
 ## Local Health
 
+For guided first-run setup:
+
+```bash
+./setup.sh
+```
+
+This writes `~/.noggin/noggin.env`, which Noggin auto-loads at runtime.
+
 ```bash
 export NOGGIN_PROVIDER=openai
 export NOGGIN_API_KEY=...

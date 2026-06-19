@@ -36,6 +36,20 @@ Slack / GitHub / Agent / CLI
 
 ## Install
 
+Guided setup:
+
+```bash
+git clone <this-repo>
+cd noggin
+./setup.sh
+```
+
+The setup script creates `.venv`, installs `noggin`, writes a private
+`~/.noggin/noggin.env`, asks for your LLM provider/API key, and walks through
+optional Slack, GitHub, sync, Hermes, and OpenClaw configuration.
+
+Manual setup:
+
 ```bash
 git clone <this-repo>
 cd noggin
