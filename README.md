@@ -1,7 +1,7 @@
 # Noggin
 
 <p align="center">
-  <img src="assets/noggin-logo.svg" alt="Noggin logo" width="720">
+  <img src="assets/noggin-logo.png" alt="Noggin logo" width="720">
 </p>
 
 Noggin is a local-first brain for humans, teams, and AI agents.
