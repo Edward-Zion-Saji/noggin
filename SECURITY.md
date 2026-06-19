@@ -2,7 +2,7 @@
 
 ## Threat Model
 
-Open Brain Plugin ingests untrusted content from humans, agents, Slack, GitHub,
+Noggin ingests untrusted content from humans, agents, Slack, GitHub,
 and future surfaces. The main threats are prompt injection, secret capture,
 cross-workspace leakage, silent data loss, and unsafe skill mutation.
 

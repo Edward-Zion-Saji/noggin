@@ -1,9 +1,9 @@
-"""Hermes plugin shim for Open Brain Plugin.
+"""Hermes plugin shim for Noggin.
 
 Install:
-  1. `pip install -e /path/to/open-brain-plugin`
-  2. Copy this directory to `~/.hermes/plugins/open_brain`
-  3. `hermes plugins enable open_brain`
+  1. `pip install -e /path/to/noggin`
+  2. Copy this directory to `~/.hermes/plugins/noggin`
+  3. `hermes plugins enable noggin`
 """
 
 from __future__ import annotations
@@ -11,9 +11,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from open_brain import BrainService
+from noggin import BrainService
 
-TOOLSET = "open_brain"
+TOOLSET = "noggin"
 
 
 INGEST_SCHEMA = {

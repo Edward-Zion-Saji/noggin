@@ -4,9 +4,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from open_brain import BrainService
-from open_brain.errors import EmptyContentError, SkillPatchUnsafeError
-from open_brain.redaction import redact_secrets
+from noggin import BrainService
+from noggin.errors import EmptyContentError, SkillPatchUnsafeError
+from noggin.redaction import redact_secrets
 
 
 class BrainCoreTests(unittest.TestCase):

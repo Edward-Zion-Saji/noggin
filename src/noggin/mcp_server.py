@@ -1,4 +1,4 @@
-"""Minimal stdio MCP server for Open Brain tools."""
+"""Minimal stdio MCP server for Noggin tools."""
 
 from __future__ import annotations
 
@@ -100,7 +100,7 @@ class McpServer:
                     {
                         "protocolVersion": "2025-03-26",
                         "capabilities": {"tools": {}, "resources": {}},
-                        "serverInfo": {"name": "open-brain-plugin", "version": "0.1.0"},
+                        "serverInfo": {"name": "noggin", "version": "0.1.0"},
                     },
                 )
             if method == "notifications/initialized":
@@ -117,12 +117,12 @@ class McpServer:
                         "resources": [
                             {
                                 "uri": "brain://stats",
-                                "name": "Brain Stats",
+                                "name": "Noggin Stats",
                                 "mimeType": "application/json",
                             },
                             {
                                 "uri": "brain://events/recent",
-                                "name": "Recent Brain Events",
+                                "name": "Recent Noggin Events",
                                 "mimeType": "application/json",
                             },
                         ]
@@ -227,4 +227,3 @@ def _result(request_id: Any, result: dict[str, Any]) -> dict[str, Any]:
 
 def _error(request_id: Any, code: int, message: str) -> dict[str, Any]:
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
-

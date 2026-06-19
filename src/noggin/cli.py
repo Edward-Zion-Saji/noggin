@@ -1,4 +1,4 @@
-"""Command-line interface for Open Brain Plugin."""
+"""Command-line interface for Noggin."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="brain", description="Local-first brain for agents and teams.")
+    parser = argparse.ArgumentParser(prog="noggin", description="Local-first brain for agents and teams.")
     parser.add_argument("--db", default=str(default_db_path()), help="SQLite brain database path.")
     sub = parser.add_subparsers(dest="command", required=True)
 

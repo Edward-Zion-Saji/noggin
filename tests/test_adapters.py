@@ -7,10 +7,10 @@ import time
 import unittest
 from pathlib import Path
 
-from open_brain import BrainService
-from open_brain.mcp_server import McpServer
-from open_brain.slack import handle_slack_command, verify_slack_signature
-from open_brain.sync import export_snapshot, import_snapshot
+from noggin import BrainService
+from noggin.mcp_server import McpServer
+from noggin.slack import handle_slack_command, verify_slack_signature
+from noggin.sync import export_snapshot, import_snapshot
 
 
 class AdapterTests(unittest.TestCase):

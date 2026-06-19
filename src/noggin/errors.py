@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 class BrainError(Exception):
-    """Base class for expected Open Brain failures."""
+    """Base class for expected Noggin failures."""
 
 
 class InvalidEnvelopeError(BrainError):
@@ -69,4 +69,3 @@ class SyncAuthError(BrainError):
 
 class SyncConflictError(BrainError):
     """Raised when sync detects incompatible peer state."""
-

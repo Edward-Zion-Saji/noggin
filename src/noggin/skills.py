@@ -50,7 +50,7 @@ def propose_skill(
         new_content=new_content,
         metadata={
             "base_hash": content_hash(base_content),
-            "created_by": "open-brain",
+            "created_by": "noggin",
             "created_at": utc_now(),
         },
     )
@@ -156,10 +156,10 @@ def _render_skill(title: str, lesson: str, reason: str) -> str:
 name: {name}
 description: "{_yaml_quote(description[:900])}"
 version: 1.0.0
-author: Open Brain Plugin
+author: Noggin
 license: MIT
 metadata:
-  open_brain:
+  noggin:
     generated: true
     reason: "{_yaml_quote(reason[:300])}"
 ---
@@ -168,7 +168,7 @@ metadata:
 
 ## Overview
 
-This skill was proposed by Open Brain Plugin from observed activity. Treat it as
+This skill was proposed by Noggin from observed activity. Treat it as
 a draft until a human or trusted agent verifies that the lesson is generally
 useful and not just an artifact of one session.
 

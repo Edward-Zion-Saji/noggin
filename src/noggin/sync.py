@@ -23,7 +23,7 @@ def export_snapshot(store: BrainStore) -> dict[str, Any]:
 
     conn = store.conn
     return {
-        "format": "open-brain-snapshot-v1",
+        "format": "noggin-snapshot-v1",
         "exported_at": utc_now(),
         "events": [dict(row) for row in conn.execute("SELECT * FROM events").fetchall()],
         "observations": [dict(row) for row in conn.execute("SELECT * FROM observations").fetchall()],
@@ -38,7 +38,7 @@ def export_snapshot(store: BrainStore) -> dict[str, Any]:
 def import_snapshot(store: BrainStore, snapshot: dict[str, Any]) -> dict[str, int]:
     """Import a snapshot idempotently."""
 
-    if snapshot.get("format") != "open-brain-snapshot-v1":
+    if snapshot.get("format") not in {"noggin-snapshot-v1", "open-brain-snapshot-v1"}:
         raise ValueError("unsupported snapshot format")
     counts = {"events": 0, "observations": 0, "entities": 0, "edges": 0, "skill_proposals": 0}
     conn = store.conn
@@ -151,11 +151,11 @@ def cmd_sync_import(args: argparse.Namespace) -> int:
 
 
 def cmd_sync_serve(args: argparse.Namespace) -> int:
-    token = args.token or os.getenv("BRAIN_SYNC_TOKEN", "")
+    token = args.token or os.getenv("NOGGIN_SYNC_TOKEN") or os.getenv("BRAIN_SYNC_TOKEN", "")
     if not token:
-        raise SyncAuthError("BRAIN_SYNC_TOKEN or --token is required for sync serve")
+        raise SyncAuthError("NOGGIN_SYNC_TOKEN or --token is required for sync serve")
     server = ThreadingHTTPServer((args.host, args.port), _handler(args.db, token))
-    print(f"Brain sync peer listening on http://{args.host}:{args.port}")
+    print(f"Noggin sync peer listening on http://{args.host}:{args.port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -170,7 +170,7 @@ def cmd_sync_push(args: argparse.Namespace) -> int:
     snapshot = export_snapshot(brain.store)
     result = _request_json(
         args.url.rstrip("/") + "/sync/import",
-        token=args.token or os.getenv("BRAIN_SYNC_TOKEN", ""),
+        token=args.token or os.getenv("NOGGIN_SYNC_TOKEN") or os.getenv("BRAIN_SYNC_TOKEN", ""),
         body=snapshot,
     )
     print(json.dumps({"ok": True, "peer": result}, indent=2, sort_keys=True))
@@ -181,7 +181,7 @@ def cmd_sync_pull(args: argparse.Namespace) -> int:
     brain = BrainService(db_path=args.db)
     snapshot = _request_json(
         args.url.rstrip("/") + "/sync/export",
-        token=args.token or os.getenv("BRAIN_SYNC_TOKEN", ""),
+        token=args.token or os.getenv("NOGGIN_SYNC_TOKEN") or os.getenv("BRAIN_SYNC_TOKEN", ""),
     )
     counts = import_snapshot(brain.store, snapshot)
     print(json.dumps({"ok": True, "imported": counts}, indent=2, sort_keys=True))
@@ -237,7 +237,7 @@ def _handler(db_path: str, token: str) -> type[BaseHTTPRequestHandler]:
 
 def _request_json(url: str, *, token: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
     if not token:
-        raise SyncAuthError("BRAIN_SYNC_TOKEN or --token is required")
+        raise SyncAuthError("NOGGIN_SYNC_TOKEN or --token is required")
     data = json.dumps(body).encode("utf-8") if body is not None else None
     request = urllib.request.Request(
         url,
@@ -246,7 +246,7 @@ def _request_json(url: str, *, token: str, body: dict[str, Any] | None = None) -
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
-            "User-Agent": "open-brain-plugin/0.1.0",
+            "User-Agent": "noggin/0.1.0",
         },
     )
     try:

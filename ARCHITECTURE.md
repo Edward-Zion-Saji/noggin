@@ -2,7 +2,7 @@
 
 ## Product Boundary
 
-Open Brain Plugin is not a chat app, not a hosted knowledge base, and not a
+Noggin is not a chat app, not a hosted knowledge base, and not a
 replacement for agent skills. It is the durable brain beneath those surfaces.
 
 V1 ships as one Python package with local SQLite storage and adapters around it:

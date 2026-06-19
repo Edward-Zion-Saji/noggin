@@ -129,7 +129,7 @@ def _fetch_text(path: str, *, token: str | None = None, accept: str = "applicati
         GITHUB_API + path,
         headers={
             "Accept": accept,
-            "User-Agent": "open-brain-plugin/0.1.0",
+            "User-Agent": "noggin/0.1.0",
             **({"Authorization": f"Bearer {token}"} if token else {}),
         },
     )
@@ -195,4 +195,3 @@ def _render_pr(
     if diff:
         lines.extend(["", "Diff:", diff[:180_000]])
     return "\n".join(lines)
-

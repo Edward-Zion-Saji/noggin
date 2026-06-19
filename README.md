@@ -1,6 +1,6 @@
-# Open Brain Plugin
+# Noggin
 
-Open Brain Plugin is a local-first brain for humans, teams, and AI agents.
+Noggin is a local-first brain for humans, teams, and AI agents.
 It ingests surface activity from Slack, agent sessions, GitHub, and direct CLI
 input; extracts durable observations; stores provenance in SQLite; and exposes
 the brain through CLI, MCP, Hermes, OpenClaw, a Slack slash command, and a small
@@ -34,11 +34,11 @@ Slack / GitHub / Agent / CLI
 
 ```bash
 git clone <this-repo>
-cd open-brain-plugin
+cd noggin
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-brain doctor
+noggin doctor
 ```
 
 No LLM key is required. Without a key, the extractor uses deterministic rules.
@@ -53,11 +53,11 @@ export OPENAI_MODEL=gpt-4o-mini
 ## Quick Start
 
 ```bash
-brain ingest "Decision: we keep the first version local-first and use MCP as the host-neutral adapter."
-brain ingest --source agent --kind mistake "Mistake: auto-editing skills silently breaks trust. Always create a proposal first."
-brain recall "local-first adapter"
-brain skills propose --content "Mistake: deployment failed because migrations were not listed in the release checklist."
-brain dashboard --open
+noggin ingest "Decision: we keep the first version local-first and use MCP as the host-neutral adapter."
+noggin ingest --source agent --kind mistake "Mistake: auto-editing skills silently breaks trust. Always create a proposal first."
+noggin recall "local-first adapter"
+noggin skills propose --content "Mistake: deployment failed because migrations were not listed in the release checklist."
+noggin dashboard --open
 ```
 
 ## Adapters
@@ -66,7 +66,7 @@ brain dashboard --open
 
 ```bash
 scripts/install-hermes.sh
-hermes plugins enable open_brain
+hermes plugins enable noggin
 ```
 
 ### Local Install For OpenClaw
@@ -78,7 +78,7 @@ scripts/install-openclaw.sh
 ### MCP
 
 ```bash
-brain mcp
+noggin mcp
 ```
 
 Expose this command as a stdio MCP server. It supports:
@@ -91,8 +91,8 @@ Expose this command as a stdio MCP server. It supports:
 ### Slack
 
 ```bash
-export BRAIN_SLACK_SIGNING_SECRET=...
-brain slack serve --port 8787
+export NOGGIN_SLACK_SIGNING_SECRET=...
+noggin slack serve --port 8787
 ```
 
 Configure a Slack slash command to POST to `/slack/command`.
@@ -107,8 +107,8 @@ Supported slash command text:
 ### GitHub
 
 ```bash
-brain github issue owner/repo 123
-brain github pr owner/repo 456
+noggin github issue owner/repo 123
+noggin github pr owner/repo 456
 ```
 
 Set `GITHUB_TOKEN` for private repositories or higher rate limits.
@@ -117,7 +117,7 @@ Set `GITHUB_TOKEN` for private repositories or higher rate limits.
 
 Install the generated skill files from `integrations/hermes/SKILL.md` or
 `integrations/openclaw/SKILL.md`. Hermes can also load the plugin in
-`integrations/hermes/brain_plugin/`.
+`integrations/hermes/noggin_plugin/`.
 
 ## Skill Proposal Safety
 
@@ -131,13 +131,13 @@ rolled back when tests fail.
 Default database path:
 
 ```bash
-~/.open-brain/brain.db
+~/.noggin/brain.db
 ```
 
 Override with:
 
 ```bash
-export BRAIN_DB=/path/to/brain.db
+export NOGGIN_DB=/path/to/brain.db
 ```
 
 ## Development

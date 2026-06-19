@@ -12,5 +12,6 @@ build/
 .env
 brain.db
 brain.db-*
+noggin.db
+noggin.db-*
 sync-outbox/
-

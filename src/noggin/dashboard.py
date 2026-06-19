@@ -17,7 +17,7 @@ from .observability import log_event
 def serve_dashboard(args: argparse.Namespace) -> int:
     server = ThreadingHTTPServer((args.host, args.port), _handler(args.db))
     url = f"http://{args.host}:{args.port}"
-    print(f"Brain dashboard listening on {url}")
+    print(f"Noggin dashboard listening on {url}")
     if args.open:
         webbrowser.open(url)
     try:
@@ -143,7 +143,7 @@ INDEX_HTML = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open Brain</title>
+  <title>Noggin</title>
   <style>
     :root {
       color-scheme: light;
@@ -233,7 +233,7 @@ INDEX_HTML = """<!doctype html>
 </head>
 <body>
   <header>
-    <h1>Open Brain</h1>
+    <h1>Noggin</h1>
     <div class="muted" id="dbPath"></div>
   </header>
   <main>

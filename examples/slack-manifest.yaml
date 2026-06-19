@@ -1,8 +1,8 @@
 display_information:
-  name: Open Brain
+  name: Noggin
 features:
   bot_user:
-    display_name: Open Brain
+    display_name: Noggin
     always_online: false
   slash_commands:
     - command: /brain

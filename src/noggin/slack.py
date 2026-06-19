@@ -22,7 +22,11 @@ from .observability import log_event
 def serve_slack(args: argparse.Namespace) -> int:
     """Run the Slack adapter HTTP server."""
 
-    signing_secret = args.signing_secret or os.getenv("BRAIN_SLACK_SIGNING_SECRET", "")
+    signing_secret = (
+        args.signing_secret
+        or os.getenv("NOGGIN_SLACK_SIGNING_SECRET")
+        or os.getenv("BRAIN_SLACK_SIGNING_SECRET", "")
+    )
     handler_cls = _handler(args.db, signing_secret)
     server = ThreadingHTTPServer((args.host, args.port), handler_cls)
     print(f"Slack brain adapter listening on http://{args.host}:{args.port}")
@@ -45,7 +49,7 @@ def handle_slack_command(brain: BrainService, form: dict[str, str]) -> dict[str,
     trigger = form.get("trigger_id") or content_hash(json.dumps(form, sort_keys=True))
     if not text or text in {"help", "-h", "--help"}:
         return _slack_text(
-            "Open Brain commands: `remember <text>`, `recall <query>`, "
+            "Noggin commands: `remember <text>`, `recall <query>`, "
             "`propose-skill <lesson>`, `status`."
         )
 

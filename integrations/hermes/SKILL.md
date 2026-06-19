@@ -1,20 +1,20 @@
 ---
-name: open-brain
-description: Use when Hermes should remember durable lessons, recall prior work, or create guarded skill proposals through Open Brain Plugin.
+name: noggin
+description: Use when Hermes should remember durable lessons, recall prior work, or create guarded skill proposals through Noggin.
 version: 1.0.0
-author: Open Brain Plugin
+author: Noggin
 license: MIT
 metadata:
   hermes:
-    tags: [memory, skills, mcp, open-brain]
+    tags: [memory, skills, mcp, noggin]
     related_skills: [hermes-agent-skill-authoring, systematic-debugging]
 ---
 
-# Open Brain
+# Noggin
 
 ## Overview
 
-Open Brain Plugin is the durable brain beneath agent sessions. Use it to store
+Noggin is the durable brain beneath agent sessions. Use it to store
 decisions, mistakes, process details, and source-backed lessons that should
 survive beyond the current chat.
 
@@ -37,9 +37,9 @@ Prefer native plugin tools when available:
 If tools are not installed, use the CLI:
 
 ```bash
-brain ingest --source hermes --kind decision "Decision: ..."
-brain recall "deployment checklist"
-brain skills propose --content "Mistake: ..."
+noggin ingest --source hermes --kind decision "Decision: ..."
+noggin recall "deployment checklist"
+noggin skills propose --content "Mistake: ..."
 ```
 
 ## Operating Rules

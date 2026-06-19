@@ -3,13 +3,13 @@ requires = ["setuptools>=69,<81"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "open-brain-plugin"
+name = "noggin"
 version = "0.1.0"
 description = "Local-first company and agent brain for Slack, MCP, Hermes, OpenClaw, and GitHub workflows."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Open Brain Plugin Contributors" }]
+authors = [{ name = "Noggin Contributors" }]
 keywords = ["agents", "memory", "mcp", "slack", "hermes", "openclaw", "knowledge-graph"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -27,7 +27,8 @@ dev = [
 ]
 
 [project.scripts]
-brain = "open_brain.cli:main"
+noggin = "noggin.cli:main"
+brain = "noggin.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -35,4 +36,3 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-

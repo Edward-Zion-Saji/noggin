@@ -1,19 +1,19 @@
 ---
-name: open-brain
-description: Use when OpenClaw should persist durable agent activity, recall project context, or propose skill updates through Open Brain Plugin.
+name: noggin
+description: Use when OpenClaw should persist durable agent activity, recall project context, or propose skill updates through Noggin.
 version: 1.0.0
-author: Open Brain Plugin
+author: Noggin
 license: MIT
 metadata:
   openclaw:
-    tags: [memory, skills, mcp, open-brain]
+    tags: [memory, skills, mcp, noggin]
 ---
 
-# Open Brain
+# Noggin
 
 ## Overview
 
-Open Brain Plugin gives OpenClaw a local-first brain shared across chat
+Noggin gives OpenClaw a local-first brain shared across chat
 surfaces, agent sessions, GitHub work, Slack commands, and MCP-compatible
 clients.
 
@@ -29,7 +29,7 @@ clients.
 Use the MCP server when configured:
 
 ```bash
-brain mcp
+noggin mcp
 ```
 
 Available tools:
@@ -42,9 +42,9 @@ Available tools:
 Fallback CLI:
 
 ```bash
-brain ingest --source openclaw --kind decision "Decision: ..."
-brain recall "repo release process"
-brain skills propose --content "Mistake: ..."
+noggin ingest --source openclaw --kind decision "Decision: ..."
+noggin recall "repo release process"
+noggin skills propose --content "Mistake: ..."
 ```
 
 ## Safety Rules

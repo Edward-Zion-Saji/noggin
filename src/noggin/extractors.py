@@ -77,7 +77,7 @@ class OpenAICompatibleExtractor:
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
         self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        self.timeout = float(os.getenv("BRAIN_LLM_TIMEOUT", "30"))
+        self.timeout = float(os.getenv("NOGGIN_LLM_TIMEOUT") or os.getenv("BRAIN_LLM_TIMEOUT", "30"))
 
     def available(self) -> bool:
         return bool(self.api_key)
@@ -169,7 +169,7 @@ class FallbackExtractor:
         self.llm = OpenAICompatibleExtractor()
 
     def extract(self, event: SourceEvent, event_id: str, content: str) -> list[Observation]:
-        mode = os.getenv("BRAIN_EXTRACTOR", "auto").lower()
+        mode = (os.getenv("NOGGIN_EXTRACTOR") or os.getenv("BRAIN_EXTRACTOR", "auto")).lower()
         if mode == "heuristic":
             return self.heuristic.extract(event, event_id, content)
         if mode in {"auto", "llm"} and self.llm.available():
@@ -203,4 +203,3 @@ def _strip_json_fence(text: str) -> str:
         if stripped.startswith("json"):
             stripped = stripped[4:]
     return stripped.strip()
-

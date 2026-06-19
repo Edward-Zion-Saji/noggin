@@ -1,8 +1,7 @@
-"""Open Brain Plugin public package."""
+"""Compatibility imports for the old open_brain package name.
 
-from .brain import BrainService
-from .models import Observation, SourceEvent
-from .paths import default_db_path
+New code should import from `noggin`.
+"""
 
-__all__ = ["BrainService", "Observation", "SourceEvent", "default_db_path"]
+from noggin import *  # noqa: F403
 

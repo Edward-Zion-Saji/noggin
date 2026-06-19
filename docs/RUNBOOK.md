@@ -3,8 +3,8 @@
 ## Local Health
 
 ```bash
-brain doctor
-brain stats
+noggin doctor
+noggin stats
 ```
 
 Expected: JSON with `ok: true`, a database path, and event/observation counts.
@@ -12,8 +12,8 @@ Expected: JSON with `ok: true`, a database path, and event/observation counts.
 ## Slack Adapter
 
 ```bash
-export BRAIN_SLACK_SIGNING_SECRET=...
-brain slack serve --host 0.0.0.0 --port 8787
+export NOGGIN_SLACK_SIGNING_SECRET=...
+noggin slack serve --host 0.0.0.0 --port 8787
 ```
 
 Health check:
@@ -28,26 +28,26 @@ and system clock. Slack requests older than five minutes are rejected.
 ## Sync Peer
 
 ```bash
-export BRAIN_SYNC_TOKEN="$(openssl rand -hex 24)"
-brain sync serve --host 0.0.0.0 --port 8797
+export NOGGIN_SYNC_TOKEN="$(openssl rand -hex 24)"
+noggin sync serve --host 0.0.0.0 --port 8797
 ```
 
 Push from another machine:
 
 ```bash
-BRAIN_SYNC_TOKEN=... brain sync push http://host:8797
+NOGGIN_SYNC_TOKEN=... noggin sync push http://host:8797
 ```
 
 Pull into another machine:
 
 ```bash
-BRAIN_SYNC_TOKEN=... brain sync pull http://host:8797
+NOGGIN_SYNC_TOKEN=... noggin sync pull http://host:8797
 ```
 
 ## Dashboard
 
 ```bash
-brain dashboard --open
+noggin dashboard --open
 ```
 
 Use the proposals tab for draft skill changes. Apply requires an explicit
@@ -58,7 +58,7 @@ allowed root; test commands can be supplied through CLI for safer automation.
 Default structured log path:
 
 ```bash
-~/.open-brain/logs/brain.log
+~/.noggin/logs/brain.log
 ```
 
 Important events:
