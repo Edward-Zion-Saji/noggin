@@ -26,6 +26,13 @@ clients.
 
 ## Preferred Access
 
+Noggin requires LLM provider configuration in the OpenClaw runtime environment:
+
+```bash
+export NOGGIN_PROVIDER=openai
+export NOGGIN_API_KEY=...
+```
+
 Use the MCP server when configured:
 
 ```bash
@@ -54,4 +61,3 @@ noggin skills propose --content "Mistake: ..."
 3. Do not auto-apply skill edits. Create proposals unless an explicit trusted workflow applies them with tests.
 4. If a recall result is stale or conflicts with newer evidence, tell the user.
 5. Prefer specific lessons over generic memories.
-

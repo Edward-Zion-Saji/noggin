@@ -3,11 +3,30 @@
 ## Local Health
 
 ```bash
+export NOGGIN_PROVIDER=openai
+export NOGGIN_API_KEY=...
 noggin doctor
 noggin stats
 ```
 
-Expected: JSON with `ok: true`, a database path, and event/observation counts.
+Expected: JSON with `ok: true`, a database path, provider/model details, and
+event/observation counts.
+
+## LLM Provider Configuration
+
+Noggin is LLM-only. Configure a provider before running CLI commands or servers:
+
+```bash
+export NOGGIN_PROVIDER=openai
+export NOGGIN_API_KEY=...
+export NOGGIN_MODEL=gpt-4o-mini
+```
+
+Use provider-specific key env vars when useful, such as
+`NOGGIN_ANTHROPIC_API_KEY`, `NOGGIN_GEMINI_API_KEY`, or
+`NOGGIN_OPENROUTER_API_KEY`. For OpenAI-compatible local gateways, set
+`NOGGIN_PROVIDER=custom`, `NOGGIN_BASE_URL=http://host:port/v1`, and
+`NOGGIN_API_KEY` to the gateway token.
 
 ## Slack Adapter
 
@@ -70,4 +89,3 @@ Important events:
 - `brain.skill_proposal.applied`
 - `brain.sync.imported`
 - `brain.slack.signature_error`
-

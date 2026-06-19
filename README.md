@@ -1,10 +1,14 @@
 # Noggin
 
+<p align="center">
+  <img src="assets/noggin-logo.svg" alt="Noggin logo" width="720">
+</p>
+
 Noggin is a local-first brain for humans, teams, and AI agents.
 It ingests surface activity from Slack, agent sessions, GitHub, and direct CLI
-input; extracts durable observations; stores provenance in SQLite; and exposes
-the brain through CLI, MCP, Hermes, OpenClaw, a Slack slash command, and a small
-dashboard.
+input; sends the content to Noggin Workers, an LLM brain agent; stores
+provenance in SQLite; and exposes the brain through CLI, MCP, Hermes, OpenClaw,
+a Slack slash command, and a small dashboard.
 
 The product goal is simple: every useful mistake, decision, process detail, and
 workflow lesson should become reusable context instead of disappearing at the
@@ -19,7 +23,7 @@ Slack / GitHub / Agent / CLI
   source event envelope
           │
           ▼
- validate -> redact -> dedupe -> extract
+ validate -> redact -> dedupe -> Noggin Workers
           │                    │
           ▼                    ▼
  append-only event log   observations + entities + edges
@@ -41,18 +45,38 @@ pip install -e ".[dev]"
 noggin doctor
 ```
 
-No LLM key is required. Without a key, the extractor uses deterministic rules.
-With an OpenAI-compatible endpoint configured, it can extract richer facts:
+Noggin is LLM-only. Running the CLI, servers, and adapters requires an API key
+for the configured provider:
 
 ```bash
-export OPENAI_API_KEY=...
-export OPENAI_MODEL=gpt-4o-mini
-# Optional: export OPENAI_BASE_URL=https://api.openai.com/v1
+export NOGGIN_PROVIDER=openai
+export NOGGIN_API_KEY=...
+export NOGGIN_MODEL=gpt-4o-mini
+noggin doctor
 ```
+
+Supported providers:
+
+| Provider | API key env | Notes |
+| --- | --- | --- |
+| `openai` | `NOGGIN_API_KEY` or `NOGGIN_OPENAI_API_KEY` | OpenAI chat completions |
+| `anthropic` | `NOGGIN_API_KEY` or `NOGGIN_ANTHROPIC_API_KEY` | Anthropic Messages API |
+| `gemini` | `NOGGIN_API_KEY` or `NOGGIN_GEMINI_API_KEY` | Gemini generateContent |
+| `openrouter` | `NOGGIN_API_KEY` or `NOGGIN_OPENROUTER_API_KEY` | OpenAI-compatible |
+| `groq` | `NOGGIN_API_KEY` or `NOGGIN_GROQ_API_KEY` | OpenAI-compatible |
+| `together` | `NOGGIN_API_KEY` or `NOGGIN_TOGETHER_API_KEY` | OpenAI-compatible |
+| `mistral` | `NOGGIN_API_KEY` or `NOGGIN_MISTRAL_API_KEY` | OpenAI-compatible |
+| `ollama` | `NOGGIN_API_KEY` or `NOGGIN_OLLAMA_API_KEY` | OpenAI-compatible local server |
+| `custom` | `NOGGIN_API_KEY` | Set `NOGGIN_BASE_URL` |
+
+Optional settings: `NOGGIN_BASE_URL`, `NOGGIN_MODEL`,
+`NOGGIN_LLM_TIMEOUT`, and `NOGGIN_TEMPERATURE`.
 
 ## Quick Start
 
 ```bash
+export NOGGIN_PROVIDER=openai
+export NOGGIN_API_KEY=...
 noggin ingest "Decision: we keep the first version local-first and use MCP as the host-neutral adapter."
 noggin ingest --source agent --kind mistake "Mistake: auto-editing skills silently breaks trust. Always create a proposal first."
 noggin recall "local-first adapter"
@@ -121,10 +145,10 @@ Install the generated skill files from `integrations/hermes/SKILL.md` or
 
 ## Skill Proposal Safety
 
-The brain never silently edits skills by default. It creates a proposal with
-provenance and an explicit target path. Applying a proposal requires an allowed
-root and writes an audit event. If `--run-tests` is provided, the proposal is
-rolled back when tests fail.
+Noggin Workers can draft skill changes, but the brain never silently edits
+skills by default. It creates a proposal with provenance and an explicit target
+path. Applying a proposal requires an allowed root and writes an audit event. If
+`--run-tests` is provided, the proposal is rolled back when tests fail.
 
 ## Storage
 

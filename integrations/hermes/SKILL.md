@@ -27,6 +27,13 @@ survive beyond the current chat.
 
 ## Tools
 
+Noggin requires LLM provider configuration in the Hermes runtime environment:
+
+```bash
+export NOGGIN_PROVIDER=openai
+export NOGGIN_API_KEY=...
+```
+
 Prefer native plugin tools when available:
 
 - `brain_ingest`
@@ -58,4 +65,3 @@ Before finishing substantial work, store:
 - Mistakes or root causes discovered.
 - Tests or commands that verified the work.
 - Follow-up work that should not be lost.
-
