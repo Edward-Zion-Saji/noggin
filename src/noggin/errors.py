@@ -39,6 +39,10 @@ class LlmExtractionError(BrainError):
     """Raised when the LLM extractor fails after the raw event was stored."""
 
 
+class LlmConfigurationError(BrainError):
+    """Raised when Noggin has no usable LLM provider configuration."""
+
+
 class SkillProposalNotFoundError(BrainError):
     """Raised when a skill proposal id does not exist."""
 
