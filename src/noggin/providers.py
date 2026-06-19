@@ -9,6 +9,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Protocol
 
+from .config import load_user_env
 from .errors import LlmConfigurationError, LlmExtractionError
 
 
@@ -40,6 +41,7 @@ class ProviderConfig:
 
     @classmethod
     def from_env(cls) -> "ProviderConfig":
+        load_user_env()
         provider = os.getenv("NOGGIN_PROVIDER", "openai").strip().lower()
         api_key = (
             os.getenv("NOGGIN_API_KEY")

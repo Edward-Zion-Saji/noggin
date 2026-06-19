@@ -87,9 +87,47 @@ class BrainCoreTests(unittest.TestCase):
             self.assertTrue((root / "skills/test/SKILL.md").exists())
 
     def test_provider_config_requires_api_key(self) -> None:
-        with mock.patch.dict("os.environ", {"NOGGIN_PROVIDER": "openai"}, clear=True):
-            with self.assertRaises(LlmConfigurationError):
-                ProviderConfig.from_env()
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {"NOGGIN_PROVIDER": "openai", "NOGGIN_ENV": str(Path(tmp) / "missing.env")}
+            with mock.patch.dict("os.environ", env, clear=True):
+                with self.assertRaises(LlmConfigurationError):
+                    ProviderConfig.from_env()
+
+    def test_provider_config_loads_user_env_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            env_file = Path(tmp) / "noggin.env"
+            env_file.write_text(
+                "\n".join(
+                    [
+                        "NOGGIN_PROVIDER='openai'",
+                        "NOGGIN_API_KEY='file-key'",
+                        "NOGGIN_MODEL='file-model'",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.dict("os.environ", {"NOGGIN_ENV": str(env_file)}, clear=True):
+                config = ProviderConfig.from_env()
+            self.assertEqual(config.provider, "openai")
+            self.assertEqual(config.api_key, "file-key")
+            self.assertEqual(config.model, "file-model")
+
+    def test_user_env_file_does_not_override_process_env(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            env_file = Path(tmp) / "noggin.env"
+            env_file.write_text(
+                "\n".join(
+                    [
+                        "NOGGIN_PROVIDER='openai'",
+                        "NOGGIN_API_KEY='file-key'",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            env = {"NOGGIN_ENV": str(env_file), "NOGGIN_API_KEY": "process-key"}
+            with mock.patch.dict("os.environ", env, clear=True):
+                config = ProviderConfig.from_env()
+            self.assertEqual(config.api_key, "process-key")
 
 
 if __name__ == "__main__":

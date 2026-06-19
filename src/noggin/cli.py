@@ -8,11 +8,13 @@ import sys
 from typing import Any
 
 from .brain import BrainService
+from .config import load_user_env
 from .errors import BrainError
 from .paths import default_db_path
 
 
 def main(argv: list[str] | None = None) -> int:
+    load_user_env()
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

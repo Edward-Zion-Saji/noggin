@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from .config import load_user_env
 from .errors import LlmExtractionError
 from .models import SourceEvent, content_hash
 from .observability import log_event
@@ -19,6 +20,7 @@ class BrainService:
     """Facade around validation, redaction, extraction, recall, and storage."""
 
     def __init__(self, db_path: str | Path | None = None, workers: NogginWorkers | None = None):
+        load_user_env()
         self.store = BrainStore(db_path or default_db_path())
         self.workers = workers or NogginWorkers()
 
