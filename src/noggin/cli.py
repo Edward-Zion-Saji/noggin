@@ -150,6 +150,8 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     payload = {
         "ok": True,
         "db": str(brain.store.db_path),
+        "provider": brain.workers.provider,
+        "model": brain.workers.model,
         "stats": brain.stats(),
     }
     print_json(payload)

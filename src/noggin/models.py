@@ -15,7 +15,7 @@ MAX_CONTENT_CHARS = 250_000
 
 
 def stable_json(data: dict[str, Any]) -> str:
-    """Return deterministic compact JSON."""
+    """Return stable compact JSON for hashes and idempotency keys."""
 
     return json.dumps(data, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
 
@@ -124,4 +124,3 @@ class Observation:
             "metadata": dict(self.metadata),
             "created_at": self.created_at,
         }
-

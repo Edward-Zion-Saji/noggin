@@ -12,11 +12,13 @@ from noggin.mcp_server import McpServer
 from noggin.slack import handle_slack_command, verify_slack_signature
 from noggin.sync import export_snapshot, import_snapshot
 
+from fakes import fake_workers
+
 
 class AdapterTests(unittest.TestCase):
     def test_mcp_tool_call_ingests(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            server = McpServer(BrainService(Path(tmp) / "brain.db"))
+            server = McpServer(BrainService(Path(tmp) / "brain.db", workers=fake_workers()))
             response = server.handle(
                 {
                     "jsonrpc": "2.0",
@@ -33,7 +35,7 @@ class AdapterTests(unittest.TestCase):
 
     def test_slack_remember_and_recall(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            brain = BrainService(Path(tmp) / "brain.db")
+            brain = BrainService(Path(tmp) / "brain.db", workers=fake_workers())
             remembered = handle_slack_command(
                 brain,
                 {
@@ -76,8 +78,8 @@ class AdapterTests(unittest.TestCase):
 
     def test_snapshot_sync_roundtrip(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            source = BrainService(Path(tmp) / "source.db")
-            target = BrainService(Path(tmp) / "target.db")
+            source = BrainService(Path(tmp) / "source.db", workers=fake_workers())
+            target = BrainService(Path(tmp) / "target.db", workers=fake_workers())
             source.ingest("Decision: snapshot sync roundtrip works.")
             snapshot = export_snapshot(source.store)
             counts = import_snapshot(target.store, snapshot)
@@ -87,4 +89,3 @@ class AdapterTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

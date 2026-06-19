@@ -38,7 +38,7 @@ def export_snapshot(store: BrainStore) -> dict[str, Any]:
 def import_snapshot(store: BrainStore, snapshot: dict[str, Any]) -> dict[str, int]:
     """Import a snapshot idempotently."""
 
-    if snapshot.get("format") not in {"noggin-snapshot-v1", "open-brain-snapshot-v1"}:
+    if snapshot.get("format") != "noggin-snapshot-v1":
         raise ValueError("unsupported snapshot format")
     counts = {"events": 0, "observations": 0, "entities": 0, "edges": 0, "skill_proposals": 0}
     conn = store.conn

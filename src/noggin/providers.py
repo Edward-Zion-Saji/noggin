@@ -28,7 +28,7 @@ class ProviderConfig:
 
     Noggin is intentionally LLM-only. Production clients require an API key even
     when the downstream provider can run without one; that keeps deployment
-    behavior explicit and avoids silently switching to local deterministic logic.
+    behavior explicit and avoids silently switching to local fallback logic.
     """
 
     provider: str
@@ -36,6 +36,7 @@ class ProviderConfig:
     model: str
     base_url: str
     timeout: float = 45.0
+    temperature: float = 0.2
 
     @classmethod
     def from_env(cls) -> "ProviderConfig":
@@ -56,12 +57,14 @@ class ProviderConfig:
         model = os.getenv("NOGGIN_MODEL", defaults["model"]).strip()
         base_url = os.getenv("NOGGIN_BASE_URL", defaults["base_url"]).strip().rstrip("/")
         timeout = float(os.getenv("NOGGIN_LLM_TIMEOUT", "45"))
+        temperature = float(os.getenv("NOGGIN_TEMPERATURE", "0.2"))
         return cls(
             provider=provider,
             api_key=api_key,
             model=model,
             base_url=base_url,
             timeout=timeout,
+            temperature=temperature,
         )
 
 
@@ -76,7 +79,7 @@ class OpenAIStyleClient:
     def complete_json(self, messages: list[dict[str, str]], *, timeout: float | None = None) -> object:
         payload = {
             "model": self.model,
-            "temperature": 0.1,
+            "temperature": self.config.temperature,
             "messages": messages,
             "response_format": {"type": "json_object"},
         }
@@ -120,7 +123,7 @@ class AnthropicClient:
         payload = {
             "model": self.model,
             "max_tokens": 4096,
-            "temperature": 0.1,
+            "temperature": self.config.temperature,
             "system": system,
             "messages": user_messages,
         }
@@ -157,7 +160,10 @@ class GeminiClient:
         prompt = "\n\n".join(f"{msg['role'].upper()}: {msg['content']}" for msg in messages)
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
+            "generationConfig": {
+                "temperature": self.config.temperature,
+                "responseMimeType": "application/json",
+            },
         }
         url = f"{self.config.base_url}/models/{self.model}:generateContent?key={self.config.api_key}"
         request = urllib.request.Request(
@@ -185,7 +191,7 @@ def make_llm_client(config: ProviderConfig | None = None) -> LlmClient:
         return GeminiClient(resolved)
     if resolved.provider in {"openai", "openrouter", "groq", "together", "mistral", "ollama", "custom"}:
         return OpenAIStyleClient(resolved)
-        raise LlmConfigurationError(f"unsupported NOGGIN_PROVIDER: {resolved.provider}")
+    raise LlmConfigurationError(f"unsupported NOGGIN_PROVIDER: {resolved.provider}")
 
 
 def _provider_defaults(provider: str) -> dict[str, str]:

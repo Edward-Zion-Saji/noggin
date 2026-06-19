@@ -36,7 +36,7 @@ class StoreReadError(BrainError):
 
 
 class LlmExtractionError(BrainError):
-    """Raised when the LLM extractor fails after the raw event was stored."""
+    """Raised when Noggin Workers fail after the raw event was stored."""
 
 
 class LlmConfigurationError(BrainError):

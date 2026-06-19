@@ -6,21 +6,21 @@ from pathlib import Path
 from typing import Any
 
 from .errors import LlmExtractionError
-from .extractors import Extractor, FallbackExtractor
 from .models import SourceEvent, content_hash
 from .observability import log_event
 from .paths import default_db_path
 from .redaction import redact_secrets
 from .skills import apply_skill_proposal, propose_skill, reject_skill_proposal
 from .store import BrainStore
+from .workers import NogginWorkers
 
 
 class BrainService:
     """Facade around validation, redaction, extraction, recall, and storage."""
 
-    def __init__(self, db_path: str | Path | None = None, extractor: Extractor | None = None):
+    def __init__(self, db_path: str | Path | None = None, workers: NogginWorkers | None = None):
         self.store = BrainStore(db_path or default_db_path())
-        self.extractor = extractor or FallbackExtractor()
+        self.workers = workers or NogginWorkers()
 
     def ingest(
         self,
@@ -68,7 +68,7 @@ class BrainService:
             }
 
         try:
-            observations = self.extractor.extract(event, event_id, redaction.content)
+            observations = self.workers.arrange_event(event, event_id, redaction.content)
             self.store.add_observations(observations)
             self.store.set_event_extraction(event_id, "ok")
             return {
@@ -101,14 +101,10 @@ class BrainService:
         results = self.recall(query, limit=limit, workspace=workspace)
         if not results:
             return {"query": query, "summary": "No matching brain context found.", "results": []}
-        bullets = []
-        for row in results[:limit]:
-            confidence = row.get("confidence", 0)
-            source = row.get("source", "unknown")
-            bullets.append(f"- ({confidence:.2f}, {source}) {row.get('content', '')}")
+        summary = self.workers.reflect(query, results[:limit])
         return {
             "query": query,
-            "summary": "\n".join(bullets),
+            "summary": summary,
             "results": results,
         }
 
@@ -127,13 +123,13 @@ class BrainService:
     ) -> dict[str, Any]:
         """Create a guarded skill proposal."""
 
-        return propose_skill(
-            self.store,
+        draft = self.workers.draft_skill(
             content=content,
             title=title,
             target_path=target_path,
             reason=reason,
         )
+        return propose_skill(self.store, draft=draft)
 
     def apply_skill(
         self,
