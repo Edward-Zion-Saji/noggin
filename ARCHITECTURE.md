@@ -47,7 +47,47 @@ ObservationStore.upsert()
   ├── entities
   ├── edges
   └── FTS indexes
+  │
+  ▼
+KnowledgeGraphWriter.sync_nodes()
+  │
+  ├── node write failure -> GraphWriteError + visible graph_failed status
+  ├── index.md
+  └── nodes/<slug>.md with observations, links, backlinks, provenance
 ```
+
+## Knowledge Arrangement Strategy
+
+Noggin Workers use the LLM to decide what belongs in memory. The worker returns
+observations shaped as:
+
+```
+{
+  "kind": "decision|mistake|process|fact|preference|question|lesson",
+  "subject": "entity or concept",
+  "predicate": "relationship",
+  "object": "linked entity or concept",
+  "content": "source-grounded observation",
+  "confidence": 0.0-1.0,
+  "tags": ["..."]
+}
+```
+
+That becomes a graph:
+
+```
+             evidence event
+                  │
+                  ▼
+  subject node -- predicate --> object node
+       │                            │
+       └──── Markdown node files ───┘
+```
+
+SQLite is the source of truth for events, observations, entities, and edges.
+Markdown is the durable human surface: every entity becomes one file in
+`NOGGIN_GRAPH_DIR/nodes/`, and each file contains outgoing links, incoming
+backlinks, observations, and provenance.
 
 ## Provider Graph
 
@@ -67,6 +107,19 @@ CLI / Slack / MCP / Dashboard
           └── gemini
                   └── generateContent API
 ```
+
+## Markdown Graph Layout
+
+```
+~/.noggin/graph/
+  index.md
+  nodes/
+    noggin-<hash>.md
+    llm-workers-<hash>.md
+```
+
+Each node is safe to read and link from Markdown tools. Noggin rewrites node
+files from SQLite when `noggin graph sync` runs or new observations arrive.
 
 ## Skill Patch State Machine
 

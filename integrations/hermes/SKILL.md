@@ -40,12 +40,16 @@ Prefer native plugin tools when available:
 - `brain_recall`
 - `brain_reflect`
 - `brain_skill_propose`
+- `brain_graph_sync`
+- `brain_graph_list`
+- `brain_graph_show`
 
 If tools are not installed, use the CLI:
 
 ```bash
 noggin ingest --source hermes --kind decision "Decision: ..."
 noggin recall "deployment checklist"
+noggin graph show "deployment checklist"
 noggin skills propose --content "Mistake: ..."
 ```
 

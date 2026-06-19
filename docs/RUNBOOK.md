@@ -13,6 +13,7 @@ This writes `~/.noggin/noggin.env`, which Noggin auto-loads at runtime.
 ```bash
 export NOGGIN_PROVIDER=openai
 export NOGGIN_API_KEY=...
+export NOGGIN_GRAPH_DIR=~/.noggin/graph
 noggin doctor
 noggin stats
 ```
@@ -79,6 +80,26 @@ noggin dashboard --open
 
 Use the proposals tab for draft skill changes. Apply requires an explicit
 allowed root; test commands can be supplied through CLI for safer automation.
+
+## Markdown Graph
+
+Noggin materializes the knowledge graph as Markdown files:
+
+```bash
+noggin graph sync
+noggin graph list
+noggin graph show "deployment checklist"
+```
+
+Default graph path:
+
+```bash
+~/.noggin/graph
+```
+
+If `brain.ingest` returns `extraction_status: graph_failed`, the event and
+observations were stored but the Markdown graph was not written. Check
+filesystem permissions for `NOGGIN_GRAPH_DIR`, then run `noggin graph sync`.
 
 ## Logs
 

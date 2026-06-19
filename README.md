@@ -28,6 +28,7 @@ Slack / GitHub / Agent / CLI
           ▼                    ▼
  append-only event log   observations + entities + edges
           │                    │
+          │                    └────────► Markdown graph nodes
           └────────► local SQLite brain ◄──────── skill proposals
                                 │
                                 ▼
@@ -84,7 +85,7 @@ Supported providers:
 | `custom` | `NOGGIN_API_KEY` | Set `NOGGIN_BASE_URL` |
 
 Optional settings: `NOGGIN_BASE_URL`, `NOGGIN_MODEL`,
-`NOGGIN_LLM_TIMEOUT`, and `NOGGIN_TEMPERATURE`.
+`NOGGIN_LLM_TIMEOUT`, `NOGGIN_TEMPERATURE`, and `NOGGIN_GRAPH_DIR`.
 
 ## Quick Start
 
@@ -94,8 +95,31 @@ export NOGGIN_API_KEY=...
 noggin ingest "Decision: we keep the first version local-first and use MCP as the host-neutral adapter."
 noggin ingest --source agent --kind mistake "Mistake: auto-editing skills silently breaks trust. Always create a proposal first."
 noggin recall "local-first adapter"
+noggin graph sync
 noggin skills propose --content "Mistake: deployment failed because migrations were not listed in the release checklist."
 noggin dashboard --open
+```
+
+## Knowledge Arrangement
+
+Noggin Workers arrange knowledge as source-backed triples:
+
+```
+source event -> observation -> subject --predicate--> object
+```
+
+The LLM chooses durable observations, subjects, predicates, objects, confidence,
+and tags. Noggin stores the event log, observations, entities, and edges in
+SQLite, then materializes each entity as a Markdown node file under
+`~/.noggin/graph/nodes/` by default. Node files include observations, outgoing
+links, incoming backlinks, and event provenance.
+
+Graph commands:
+
+```bash
+noggin graph sync
+noggin graph list
+noggin graph show "noggin"
 ```
 
 ## Adapters
@@ -125,6 +149,9 @@ Expose this command as a stdio MCP server. It supports:
 - `brain_recall`
 - `brain_reflect`
 - `brain_skill_propose`
+- `brain_graph_sync`
+- `brain_graph_list`
+- `brain_graph_show`
 
 ### Slack
 
@@ -176,6 +203,7 @@ Override with:
 
 ```bash
 export NOGGIN_DB=/path/to/brain.db
+export NOGGIN_GRAPH_DIR=/path/to/graph
 ```
 
 ## Development

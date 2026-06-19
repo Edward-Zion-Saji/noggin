@@ -45,12 +45,16 @@ Available tools:
 - `brain_recall`
 - `brain_reflect`
 - `brain_skill_propose`
+- `brain_graph_sync`
+- `brain_graph_list`
+- `brain_graph_show`
 
 Fallback CLI:
 
 ```bash
 noggin ingest --source openclaw --kind decision "Decision: ..."
 noggin recall "repo release process"
+noggin graph show "repo release process"
 noggin skills propose --content "Mistake: ..."
 ```
 

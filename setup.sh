@@ -10,6 +10,7 @@ MODEL=""
 BASE_URL=""
 API_KEY=""
 DB_PATH=""
+GRAPH_DIR=""
 SLACK_SECRET=""
 GITHUB_TOKEN_VALUE=""
 SYNC_TOKEN_VALUE=""
@@ -39,7 +40,8 @@ This guided installer will:
   1. Create a local Python virtualenv.
   2. Install the noggin CLI.
   3. Configure your LLM provider.
-  4. Connect optional surfaces such as Slack, GitHub, Hermes, and OpenClaw.
+  4. Create a Markdown knowledge graph directory.
+  5. Connect optional surfaces such as Slack, GitHub, Hermes, and OpenClaw.
 
 EOF
 }
@@ -134,6 +136,7 @@ default_provider_values() {
 configure_storage() {
   echo "Step 3: Storage"
   DB_PATH="$(prompt_default "SQLite brain path" "$NOGGIN_HOME/brain.db")"
+  GRAPH_DIR="$(prompt_default "Markdown graph directory" "$NOGGIN_HOME/graph")"
   echo
 }
 
@@ -181,6 +184,7 @@ write_env_file() {
     write_env_line "NOGGIN_MODEL" "$MODEL"
     write_env_line "NOGGIN_BASE_URL" "$BASE_URL"
     write_env_line "NOGGIN_DB" "$DB_PATH"
+    write_env_line "NOGGIN_GRAPH_DIR" "$GRAPH_DIR"
     if [[ -n "$SLACK_SECRET" ]]; then
       write_env_line "NOGGIN_SLACK_SIGNING_SECRET" "$SLACK_SECRET"
     fi
@@ -240,6 +244,7 @@ Useful commands:
   noggin doctor
   noggin ingest "Decision: ..."
   noggin recall "..."
+  noggin graph sync
   noggin mcp
   noggin dashboard --open
 EOF
