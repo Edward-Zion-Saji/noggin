@@ -70,6 +70,28 @@ TOOLS: list[dict[str, Any]] = [
             "required": ["content"],
         },
     },
+    {
+        "name": "brain_graph_sync",
+        "description": "Materialize the Markdown knowledge graph from Noggin memory.",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "brain_graph_list",
+        "description": "List Markdown knowledge graph nodes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"limit": {"type": "integer", "default": 500}},
+        },
+    },
+    {
+        "name": "brain_graph_show",
+        "description": "Show one Markdown knowledge graph node by entity name.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+            "required": ["name"],
+        },
+    },
 ]
 
 
@@ -125,6 +147,11 @@ class McpServer:
                                 "name": "Recent Noggin Events",
                                 "mimeType": "application/json",
                             },
+                            {
+                                "uri": "brain://graph/nodes",
+                                "name": "Noggin Markdown Graph Nodes",
+                                "mimeType": "application/json",
+                            },
                         ]
                     },
                 )
@@ -172,6 +199,12 @@ class McpServer:
                     reason=args.get("reason"),
                 )
             }
+        elif name == "brain_graph_sync":
+            result = self.brain.sync_graph()
+        elif name == "brain_graph_list":
+            result = {"nodes": self.brain.list_graph_nodes(limit=int(args.get("limit", 500)))}
+        elif name == "brain_graph_show":
+            result = {"node": self.brain.graph_node(args["name"])}
         else:
             return {
                 "isError": True,
@@ -196,6 +229,12 @@ def _resource_content(brain: BrainService, uri: str) -> dict[str, Any]:
             "uri": uri,
             "mimeType": "application/json",
             "text": json.dumps(brain.store.recent_events(limit=25), indent=2),
+        }
+    if uri == "brain://graph/nodes":
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps(brain.list_graph_nodes(limit=500), indent=2),
         }
     return {"uri": uri, "mimeType": "text/plain", "text": "Unknown brain resource."}
 

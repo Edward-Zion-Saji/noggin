@@ -24,6 +24,20 @@ def default_db_path() -> Path:
     return brain_home() / "brain.db"
 
 
+def default_graph_dir(db_path: str | Path | None = None) -> Path:
+    """Return the markdown knowledge graph directory."""
+
+    raw = os.getenv("NOGGIN_GRAPH_DIR")
+    if raw:
+        return Path(raw).expanduser()
+    if db_path is not None:
+        expanded = Path(db_path).expanduser()
+        if expanded == default_db_path():
+            return brain_home() / "graph"
+        return Path(f"{expanded}.graph")
+    return brain_home() / "graph"
+
+
 def ensure_parent(path: Path) -> None:
     """Create the parent directory for *path* if needed."""
 

@@ -58,6 +58,17 @@ def build_parser() -> argparse.ArgumentParser:
     stats = sub.add_parser("stats", help="Show brain stats.")
     stats.set_defaults(func=cmd_stats)
 
+    graph = sub.add_parser("graph", help="Markdown knowledge graph commands.")
+    graph_sub = graph.add_subparsers(dest="graph_command", required=True)
+    graph_sync = graph_sub.add_parser("sync", help="Materialize Markdown graph nodes.")
+    graph_sync.set_defaults(func=cmd_graph_sync)
+    graph_list = graph_sub.add_parser("list", help="List Markdown graph nodes.")
+    graph_list.add_argument("--limit", type=int, default=500)
+    graph_list.set_defaults(func=cmd_graph_list)
+    graph_show = graph_sub.add_parser("show", help="Show one graph node.")
+    graph_show.add_argument("name")
+    graph_show.set_defaults(func=cmd_graph_show)
+
     mcp = sub.add_parser("mcp", help="Run the stdio MCP server.")
     mcp.set_defaults(func=cmd_mcp)
 
@@ -197,6 +208,24 @@ def cmd_reflect(args: argparse.Namespace) -> int:
 def cmd_stats(args: argparse.Namespace) -> int:
     print_json({"ok": True, "stats": service(args).stats()})
     return 0
+
+
+def cmd_graph_sync(args: argparse.Namespace) -> int:
+    result = service(args).sync_graph()
+    print_json({"ok": True, **result})
+    return 0
+
+
+def cmd_graph_list(args: argparse.Namespace) -> int:
+    nodes = service(args).list_graph_nodes(limit=args.limit)
+    print_json({"ok": True, "nodes": nodes})
+    return 0
+
+
+def cmd_graph_show(args: argparse.Namespace) -> int:
+    node = service(args).graph_node(args.name)
+    print_json({"ok": bool(node), "node": node})
+    return 0 if node else 1
 
 
 def cmd_mcp(args: argparse.Namespace) -> int:

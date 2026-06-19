@@ -253,6 +253,63 @@ class BrainStore:
             (new_id("ent"), cleaned, entity_type, utc_now()),
         )
 
+    def list_entities(self, *, limit: int = 500) -> list[dict[str, Any]]:
+        """Return graph entities."""
+
+        try:
+            rows = self.conn.execute(
+                "SELECT * FROM entities ORDER BY name COLLATE NOCASE LIMIT ?", (limit,)
+            ).fetchall()
+            return [dict(row) for row in rows]
+        except sqlite3.DatabaseError as exc:
+            raise StoreReadError(f"failed to list graph entities: {exc}") from exc
+
+    def entity_graph(self, name: str, *, limit: int = 100) -> dict[str, Any] | None:
+        """Return one entity with related observations and edges."""
+
+        try:
+            entity = self.conn.execute("SELECT * FROM entities WHERE name = ?", (name,)).fetchone()
+            if not entity:
+                return None
+            outgoing = self.conn.execute(
+                """
+                SELECT * FROM edges
+                WHERE from_entity = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (name, limit),
+            ).fetchall()
+            incoming = self.conn.execute(
+                """
+                SELECT * FROM edges
+                WHERE to_entity = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (name, limit),
+            ).fetchall()
+            observations = self.conn.execute(
+                """
+                SELECT
+                  o.*, e.source, e.actor, e.workspace, e.created_at AS event_created_at
+                FROM observations o
+                JOIN events e ON e.id = o.event_id
+                WHERE o.subject = ? OR o.object = ?
+                ORDER BY o.created_at DESC
+                LIMIT ?
+                """,
+                (name, name, limit),
+            ).fetchall()
+            return {
+                "entity": dict(entity),
+                "outgoing": [dict(row) for row in outgoing],
+                "incoming": [dict(row) for row in incoming],
+                "observations": [_graph_observation_row_to_dict(row) for row in observations],
+            }
+        except sqlite3.DatabaseError as exc:
+            raise StoreReadError(f"failed to load graph entity {name}: {exc}") from exc
+
     def recall(self, query: str, *, limit: int = 10, workspace: str | None = None) -> list[dict[str, Any]]:
         """Search observations first, then events."""
 
@@ -454,6 +511,11 @@ def _observation_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
     data["tags"] = _safe_load_json(data.pop("tags_json", "{}")).get("tags", [])
     data["metadata"] = _safe_load_json(data.pop("metadata_json", "{}"))
+    return data
+
+
+def _graph_observation_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    data = _observation_row_to_dict(row)
     return data
 
 

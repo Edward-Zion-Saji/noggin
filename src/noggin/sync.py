@@ -146,7 +146,8 @@ def cmd_sync_import(args: argparse.Namespace) -> int:
     brain = BrainService(db_path=args.db)
     snapshot = json.loads(Path(args.input).expanduser().read_text(encoding="utf-8"))
     counts = import_snapshot(brain.store, snapshot)
-    print(json.dumps({"ok": True, "imported": counts}, indent=2, sort_keys=True))
+    graph = brain.sync_graph()
+    print(json.dumps({"ok": True, "imported": counts, "graph": graph}, indent=2, sort_keys=True))
     return 0
 
 
@@ -184,7 +185,8 @@ def cmd_sync_pull(args: argparse.Namespace) -> int:
         token=args.token or os.getenv("NOGGIN_SYNC_TOKEN") or os.getenv("BRAIN_SYNC_TOKEN", ""),
     )
     counts = import_snapshot(brain.store, snapshot)
-    print(json.dumps({"ok": True, "imported": counts}, indent=2, sort_keys=True))
+    graph = brain.sync_graph()
+    print(json.dumps({"ok": True, "imported": counts, "graph": graph}, indent=2, sort_keys=True))
     return 0
 
 
@@ -212,7 +214,8 @@ def _handler(db_path: str, token: str) -> type[BaseHTTPRequestHandler]:
             raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
             snapshot = json.loads(raw.decode("utf-8"))
             counts = import_snapshot(brain.store, snapshot)
-            self._json({"ok": True, "imported": counts})
+            graph = brain.sync_graph()
+            self._json({"ok": True, "imported": counts, "graph": graph})
 
         def _authorized(self) -> bool:
             header = self.headers.get("Authorization", "")

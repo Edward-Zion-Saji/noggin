@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any
 
 from .config import load_user_env
-from .errors import LlmExtractionError
+from .errors import GraphWriteError, LlmExtractionError, StoreReadError
+from .graph import KnowledgeGraphWriter
 from .models import SourceEvent, content_hash
 from .observability import log_event
 from .paths import default_db_path
@@ -19,10 +20,16 @@ from .workers import NogginWorkers
 class BrainService:
     """Facade around validation, redaction, extraction, recall, and storage."""
 
-    def __init__(self, db_path: str | Path | None = None, workers: NogginWorkers | None = None):
+    def __init__(
+        self,
+        db_path: str | Path | None = None,
+        workers: NogginWorkers | None = None,
+        graph_dir: str | Path | None = None,
+    ):
         load_user_env()
         self.store = BrainStore(db_path or default_db_path())
         self.workers = workers or NogginWorkers()
+        self.graph = KnowledgeGraphWriter(self.store, graph_dir=graph_dir)
 
     def ingest(
         self,
@@ -72,14 +79,6 @@ class BrainService:
         try:
             observations = self.workers.arrange_event(event, event_id, redaction.content)
             self.store.add_observations(observations)
-            self.store.set_event_extraction(event_id, "ok")
-            return {
-                "event_id": event_id,
-                "duplicate": False,
-                "observations_added": len(observations),
-                "extraction_status": "ok",
-                "redactions": redaction.findings,
-            }
         except LlmExtractionError as exc:
             self.store.set_event_extraction(event_id, "failed", str(exc))
             log_event("brain.extraction.failed", event_id=event_id, error=str(exc))
@@ -89,6 +88,32 @@ class BrainService:
                 "observations_added": 0,
                 "extraction_status": "failed",
                 "extraction_error": str(exc),
+                "redactions": redaction.findings,
+            }
+
+        try:
+            graph_result = self.graph.sync_observations(observations)
+            self.store.set_event_extraction(event_id, "ok")
+            return {
+                "event_id": event_id,
+                "duplicate": False,
+                "observations_added": len(observations),
+                "extraction_status": "ok",
+                "graph_status": "ok",
+                "graph_nodes_updated": graph_result["nodes_written"],
+                "graph_dir": graph_result["graph_dir"],
+                "redactions": redaction.findings,
+            }
+        except (GraphWriteError, StoreReadError) as exc:
+            self.store.set_event_extraction(event_id, "graph_failed", str(exc))
+            log_event("brain.graph.failed", event_id=event_id, error=str(exc))
+            return {
+                "event_id": event_id,
+                "duplicate": False,
+                "observations_added": len(observations),
+                "extraction_status": "graph_failed",
+                "graph_status": "failed",
+                "graph_error": str(exc),
                 "redactions": redaction.findings,
             }
 
@@ -113,7 +138,24 @@ class BrainService:
     def stats(self) -> dict[str, Any]:
         """Return store stats."""
 
-        return self.store.stats()
+        stats = self.store.stats()
+        stats["graph_dir"] = str(self.graph.graph_dir)
+        return stats
+
+    def sync_graph(self) -> dict[str, Any]:
+        """Materialize the Markdown knowledge graph."""
+
+        return self.graph.sync_all()
+
+    def list_graph_nodes(self, *, limit: int = 500) -> list[dict[str, str]]:
+        """List Markdown graph nodes."""
+
+        return self.graph.list_nodes(limit=limit)
+
+    def graph_node(self, name: str) -> dict[str, Any] | None:
+        """Return one Markdown graph node."""
+
+        return self.graph.node(name)
 
     def propose_skill(
         self,

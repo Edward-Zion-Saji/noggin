@@ -35,6 +35,10 @@ class StoreReadError(BrainError):
     """Raised when SQLite cannot satisfy a read."""
 
 
+class GraphWriteError(BrainError):
+    """Raised when Noggin cannot materialize the Markdown knowledge graph."""
+
+
 class LlmExtractionError(BrainError):
     """Raised when Noggin Workers fail after the raw event was stored."""
 

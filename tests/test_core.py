@@ -7,6 +7,7 @@ from pathlib import Path
 
 from noggin import BrainService
 from noggin.errors import EmptyContentError, LlmConfigurationError, LlmExtractionError, SkillPatchUnsafeError
+from noggin.graph import node_slug
 from noggin.providers import ProviderConfig
 from noggin.redaction import redact_secrets
 
@@ -29,6 +30,32 @@ class BrainCoreTests(unittest.TestCase):
             self.assertEqual(len(recall), 1)
             self.assertEqual(recall[0]["kind"], "decision")
             self.assertIn("local-first", recall[0]["content"])
+
+    def test_ingest_materializes_markdown_graph_nodes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            brain = BrainService(Path(tmp) / "brain.db", workers=fake_workers())
+            result = brain.ingest(
+                "Decision: local-first brain uses MCP as the host-neutral adapter.",
+                source="agent",
+                kind="decision",
+            )
+
+            graph_dir = Path(result["graph_dir"])
+            noggin_node = graph_dir / "nodes" / f"{node_slug('noggin')}.md"
+            object_node = graph_dir / "nodes" / f"{node_slug('llm workers arrange memory')}.md"
+            index = graph_dir / "index.md"
+
+            self.assertEqual(result["graph_status"], "ok")
+            self.assertEqual(result["graph_nodes_updated"], 2)
+            self.assertTrue(noggin_node.exists())
+            self.assertTrue(object_node.exists())
+            self.assertTrue(index.exists())
+
+            text = noggin_node.read_text(encoding="utf-8")
+            self.assertIn("# noggin", text)
+            self.assertIn("local-first brain uses MCP", text)
+            self.assertIn("[[llm-workers-arrange-memory-", text)
+            self.assertIn("Evidence:", text)
 
     def test_duplicate_idempotency_key_is_visible(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

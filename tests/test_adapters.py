@@ -33,6 +33,26 @@ class AdapterTests(unittest.TestCase):
             text = response["result"]["content"][0]["text"]
             self.assertIn("event_id", text)
 
+    def test_mcp_graph_tools_list_nodes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            brain = BrainService(Path(tmp) / "brain.db", workers=fake_workers())
+            brain.ingest("Decision: MCP graph tools expose markdown nodes.")
+            server = McpServer(brain)
+            response = server.handle(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "brain_graph_list",
+                        "arguments": {"limit": 10},
+                    },
+                }
+            )
+            text = response["result"]["content"][0]["text"]
+            self.assertIn("noggin", text)
+            self.assertIn(".md", text)
+
     def test_slack_remember_and_recall(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             brain = BrainService(Path(tmp) / "brain.db", workers=fake_workers())

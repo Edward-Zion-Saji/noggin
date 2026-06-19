@@ -4,8 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DB="${1:-/tmp/noggin-smoke.db}"
 PORT_FILE="$(mktemp)"
+GRAPH_DIR="${DB}.graph"
 
 rm -f "$DB" "$DB-wal" "$DB-shm"
+rm -rf "$GRAPH_DIR"
 
 python3 - "$PORT_FILE" <<'PY' &
 import json
@@ -92,6 +94,7 @@ export NOGGIN_PROVIDER=openai
 export NOGGIN_API_KEY=smoke
 export NOGGIN_BASE_URL="http://127.0.0.1:${PORT}/v1"
 export NOGGIN_MODEL=smoke-model
+export NOGGIN_GRAPH_DIR="$GRAPH_DIR"
 
 PYTHONPATH="$ROOT/src" python3 -m noggin.cli --db "$DB" doctor >/dev/null
 PYTHONPATH="$ROOT/src" python3 -m noggin.cli --db "$DB" ingest \
@@ -100,10 +103,12 @@ PYTHONPATH="$ROOT/src" python3 -m noggin.cli --db "$DB" ingest \
 PYTHONPATH="$ROOT/src" python3 -m noggin.cli --db "$DB" recall "smoke ingest recall" >/tmp/noggin-smoke-result.json
 python3 - <<'PY'
 import json
+import os
 from pathlib import Path
 data = json.loads(Path("/tmp/noggin-smoke-result.json").read_text())
 assert data["ok"] is True
 assert data["results"], "expected at least one recall result"
+assert Path(os.environ["NOGGIN_GRAPH_DIR"], "index.md").exists(), "expected markdown graph index"
 PY
 
 echo "Noggin smoke test passed: $DB"
